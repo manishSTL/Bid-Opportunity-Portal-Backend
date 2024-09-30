@@ -2,22 +2,17 @@ package com.portal.bid.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name="users")
-public class User  {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @Column(name = "employee_id")
+    @Column(name = "employee_id", unique = true, nullable = false)
     private int employeeId;
 
     @Column(name = "first_name", length = 255)
@@ -26,7 +21,7 @@ public class User  {
     @Column(name = "last_name", length = 255)
     private String lastName;
 
-    @Column(name = "email",unique = true)
+    @Column(name = "email", unique = true)
     @Email(message = "Invalid email format", regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
     private String email;
 
@@ -35,10 +30,6 @@ public class User  {
 
     @Column(name = "department_id")
     private int departmentId;
-
-//    @Column(name = "role_id", nullable = false)
-//    @Enumerated(EnumType.STRING)
-//    private Role role;
 
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
@@ -52,6 +43,10 @@ public class User  {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private User parent;
 
     @PrePersist
     protected void onCreate() {
@@ -122,6 +117,14 @@ public class User  {
         this.departmentId = departmentId;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -138,16 +141,13 @@ public class User  {
         this.status = status;
     }
 
-
-    public String getPasswordHash() {
-        return passwordHash;
+    public User getParent() {
+        return parent;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setParent(User parent) {
+        this.parent = parent;
     }
-
-
 
     public enum Status {
         ACTIVE, INACTIVE

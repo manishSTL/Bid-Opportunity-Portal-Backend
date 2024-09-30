@@ -13,4 +13,5 @@ public interface OpportunityService {
     Form getOpportunityById(Long id);
     public Form updateOpportunity(Long id, Form updatedOpportunity);
     List<Form> getFilteredOpportunities(String status, String priority, String ob_fy, String businessUnit, String industrySegment, LocalDate startDate, LocalDate endDate, String responsiblePerson, String customer, BigDecimal dealValueMin, BigDecimal dealValueMax);
+    public List<Form> findPotentialDuplicates(Form newOpportunity);
 }

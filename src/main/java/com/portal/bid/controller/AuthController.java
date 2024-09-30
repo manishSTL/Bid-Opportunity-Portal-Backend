@@ -51,44 +51,47 @@ public class AuthController {
 
     @PostMapping("/saveUser")
     public ResponseEntity<String> saveUser(@RequestBody User user) {
-        if (user.getFirstName() == null || user.getFirstName().isEmpty() ||
-                user.getLastName() == null || user.getLastName().isEmpty() ||
-                user.getEmail() == null || user.getEmail().isEmpty() ||
-                user.getPasswordHash() == null || user.getPasswordHash().isEmpty() ||
-                user.getDepartmentId() == 0) { // Assuming 0 is not a valid departmentId
-
+        if (isInvalidUserInput(user)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Validation failed: All required fields must be provided.");
         }
-        System.out.print(user.getEmail()+" "+user.getPasswordHash());
-        // Check if email already exists
+
         try {
-            int id = userService.saveUser(user);
-            System.out.print("pragya2222");
-
-            String message = "User with id '" + id + "' saved successfully!";
-            return new ResponseEntity<>(message, HttpStatus.CREATED);
-        }catch (DataIntegrityViolationException e) {
-            // Print full stack trace for debugging
-//            e.printStackTrace();
-
+            User savedUser = userService.saveUser(user);
+            String message = "User with id '" + savedUser.getId() + "' saved successfully!";
+            if (savedUser.getParent() != null) {
+                message += " Parent assigned with id '" + savedUser.getParent().getId() + "'.";
+            } else {
+                message += " No parent assigned.";
+            }
+            return new ResponseEntity<>(message, HttpStatus.CREATED);       } catch (DataIntegrityViolationException e) {
             Throwable rootCause = e.getRootCause();
             if (rootCause instanceof SQLException) {
                 SQLException sqlException = (SQLException) rootCause;
-                if (sqlException.getSQLState().equals("23505")) { // SQLState for unique violation
+                if ("23505".equals(sqlException.getSQLState())) {
                     String errorMessage = "Email already exists.";
-//                    System.out.println(errorMessage + " - " + sqlException.getMessage());
                     return ResponseEntity.status(HttpStatus.CONFLICT).body(errorMessage);
                 }
             }
-            // Handle other DataIntegrityViolationException cases
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Data integrity violation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Data integrity violation: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            // Handle any other exceptions
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during user creation.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error during user creation: " + e.getMessage());
         }
     }
+
+    // Helper method to validate user input
+    private boolean isInvalidUserInput(User user) {
+        return user.getFirstName() == null || user.getFirstName().isEmpty() ||
+                user.getLastName() == null || user.getLastName().isEmpty() ||
+                user.getEmail() == null || user.getEmail().isEmpty() ||
+                user.getPasswordHash() == null || user.getPasswordHash().isEmpty() ||
+                user.getDepartmentId() == 0; // Assuming 0 is not a valid departmentId
+    }
+
 
     @PostMapping("/loginUser")
     public ResponseEntity<UserResponse> login(@RequestBody UserRequest request) {

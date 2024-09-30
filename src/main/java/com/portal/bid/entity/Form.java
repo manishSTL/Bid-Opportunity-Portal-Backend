@@ -207,6 +207,31 @@ public class Form {
     @Column(name = "business_services")
     private String businessService;
 
+    @JsonProperty("est_capex_phase")
+    @Column(name = "est_capex_phase")
+    private Integer estCapexPhase;
+
+    @JsonProperty("est_opex_phase")
+    @Column(name = "est_opex_phase")
+    private Integer estOpexPhase;
+
+    @JsonProperty("customer_name")
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @JsonProperty("logo")
+    @Column(name = "logo")
+    private String logo;
+
+    @JsonProperty("updated_by")
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @JsonProperty("updated_at")
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+
     // Getters and Setters
 
     public Long getId() {
@@ -578,6 +603,56 @@ public class Form {
 
     public void setBusinessService(String businessService) {
         this.businessService = businessService;
+    }
+
+    public Integer getEstCapexPhase() {
+        return estCapexPhase;
+    }
+
+    public void setEstCapexPhase(Integer estCapexPhase) {
+        this.estCapexPhase = estCapexPhase;
+    }
+
+    // Getter and Setter for estOpexPhase
+    public Integer getEstOpexPhase() {
+        return estOpexPhase;
+    }
+
+    public void setEstOpexPhase(Integer estOpexPhase) {
+        this.estOpexPhase = estOpexPhase;
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
+
+    // Getter and Setter for updatedBy
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    // Getter and Setter for updatedAt
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public  String getCustomerName() {
+        return customerName;
+    }
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
 }

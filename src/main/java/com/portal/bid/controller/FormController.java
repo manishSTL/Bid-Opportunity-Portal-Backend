@@ -9,6 +9,7 @@ import com.portal.bid.service.UserService;
 import com.portal.bid.service.implementation.OpportunityServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/opportunities")
@@ -34,25 +36,47 @@ public class FormController {
 
     // Create Opportunity
     @PostMapping
-    public ResponseEntity<Form> createOpportunity(@RequestBody Form opportunity) {
-        // Set the current date for createdAt
-        opportunity.setCreatedAt(LocalDateTime.now());
+    public ResponseEntity<?> createOpportunity(@RequestBody Form opportunity, @RequestParam(defaultValue = "false") boolean forcecreate) {
+        // Set the current date for createdAt and updatedAt
+        LocalDateTime now = LocalDateTime.now();
+        opportunity.setCreatedAt(now);
+        opportunity.setUpdatedAt(now);
 
         // Fetch the current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName(); // Assuming email is used as the principal
 
-        // Set the createdBy field with the current user's email
+        // Set the createdBy and updatedBy fields with the current user's email
         opportunity.setCreatedBy(currentUserEmail);
+        opportunity.setUpdatedBy(currentUserEmail);
 
-        // Save the opportunity
+        if (!forcecreate) {
+            List<Form> potentialDuplicates = opportunityService.findPotentialDuplicates(opportunity);
+            if (!potentialDuplicates.isEmpty()) {
+                List<DuplicateOpportunityResponse.PotentialDuplicate> duplicateList = potentialDuplicates.stream()
+                        .map(form -> new DuplicateOpportunityResponse.PotentialDuplicate(
+                                form.getId(),
+                                form.getOpportunity(),
+                                form.getSubmissionDate(),
+                                form.getBusinessUnit(),
+                                form.getObFy(),
+                                form.getObQtr()
+                        ))
+                        .collect(Collectors.toList());
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new DuplicateOpportunityResponse("Potential duplicate opportunities found", duplicateList));
+            }
+        }
+
+        // Save the opportunity if no duplicates found
         Form savedOpportunity = opportunityService.saveOpportunity(opportunity);
 
         // Extract primary owner details
         String primaryOwnerFullName = savedOpportunity.getPrimaryOwner();
         String[] nameParts = primaryOwnerFullName.split(" ");
         String firstName = nameParts[0];
-        String lastName = nameParts.length > 1 ? nameParts[1] : null;
+        String lastName = nameParts.length > 1 ? nameParts[1] : "";
 
         // Fetch the primary owner's email
         User primaryOwner = userService.getUserByFirstAndLastName(firstName, lastName);
@@ -82,10 +106,11 @@ public class FormController {
         // Set the current user as the updatedBy (assuming the same field createdBy is used for tracking both create and update)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
-        updatedOpportunity.setCreatedBy(currentUserEmail);
+        updatedOpportunity.setUpdatedBy(currentUserEmail);
+        updatedOpportunity.setUpdatedAt(LocalDateTime.now());
 
         Form updated = opportunityService.updateOpportunity(id, updatedOpportunity);
-
+        System.out.println("hey put req");
         if (updated != null) {
             // Extract primary owner details
             String primaryOwnerFullName = updated.getPrimaryOwner();

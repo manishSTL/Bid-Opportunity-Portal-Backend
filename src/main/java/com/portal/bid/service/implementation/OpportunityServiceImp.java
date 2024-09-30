@@ -3,12 +3,15 @@ package com.portal.bid.service.implementation;
 import com.portal.bid.entity.Form;
 import com.portal.bid.repository.FormRepository;
 import com.portal.bid.service.OpportunityService;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -190,27 +193,95 @@ public class OpportunityServiceImp implements OpportunityService {
 
     @Override
     public Form updateOpportunity(Long id, Form updatedOpportunity) {
-        return formRespository.findById(id)
-                .map(existingOpportunity -> {
-                    // Update the fields of the existing opportunity with the new data
-                    if(updatedOpportunity.getGoNoGoDate()!=null){
-                        existingOpportunity.setGoNoGoDate(updatedOpportunity.getGoNoGoDate());
-                    }
-                    if(updatedOpportunity.getGoNoGoStatus()!=null){
-                        existingOpportunity.setGoNoGoStatus(updatedOpportunity.getGoNoGoStatus());
-                    }
-                    if(updatedOpportunity.getDealStatus()!=null){
-                        existingOpportunity.setDealStatus(updatedOpportunity.getDealStatus());
-                    }
-                    if(updatedOpportunity.getAmountInrCrMax()!=null){
-                        existingOpportunity.setAmountInrCrMax(updatedOpportunity.getAmountInrCrMax());
-                    }
-                    existingOpportunity.setAdditionalRemarks(updatedOpportunity.getAdditionalRemarks());
+//        return formRespository.findById(id)
+//                .map(existingOpportunity -> {
+//                    // Update the fields of the existing opportunity with the new data
+//                    if(updatedOpportunity.getGoNoGoDate()!=null){
+//                        existingOpportunity.setGoNoGoDate(updatedOpportunity.getGoNoGoDate());
+//                    }
+//                    if(updatedOpportunity.getGoNoGoStatus()!=null){
+//                        existingOpportunity.setGoNoGoStatus(updatedOpportunity.getGoNoGoStatus());
+//                    }
+//                    if(updatedOpportunity.getDealStatus()!=null){
+//                        existingOpportunity.setDealStatus(updatedOpportunity.getDealStatus());
+//                    }
+//                    if(updatedOpportunity.getAmountInrCrMax()!=null){
+//                        existingOpportunity.setAmountInrCrMax(updatedOpportunity.getAmountInrCrMax());
+//                    }
+//                    if(updatedOpportunity.getObQtr()!=null){
+//                        existingOpportunity.setObQtr(updatedOpportunity.getObQtr());
+//                    }
+//                    existingOpportunity.setAdditionalRemarks(updatedOpportunity.getAdditionalRemarks());
+//
+//                    // Save the updated opportunity back to the repository
+//                    return formRespository.save(existingOpportunity);
+//                })
+//                .orElse(null); // Return null if the opportunity with the given ID does not exist
 
-                    // Save the updated opportunity back to the repository
-                    return formRespository.save(existingOpportunity);
-                })
-                .orElse(null); // Return null if the opportunity with the given ID does not exist
+        return formRespository.findById(id).map(existingOpportunity -> {
+            // Get all declared fields from the Form class
+            Field[] fields = Form.class.getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true); // Allows access to private fields
+                try {
+                    // Get the value of the field in the updatedOpportunity object
+                    Object updatedValue = field.get(updatedOpportunity);
+
+                    // If the updated value is not null, set it on the existingOpportunity object
+                    if (Objects.nonNull(updatedValue)) {
+                        field.set(existingOpportunity, updatedValue);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("Failed to update field: " + field.getName(), e);
+                }
+            }
+
+            // Save the updated opportunity back to the repository
+            return formRespository.save(existingOpportunity);
+        }).orElse(null);
+    }
+
+    public List<Form> findPotentialDuplicates(Form newOpportunity) {
+        // Step 1: Query the database for potential matches based on key fields
+        List<Form> potentialMatches = formRespository.findPotentialDuplicates(
+                newOpportunity.getOpportunity(),
+                newOpportunity.getIndustrySegment(),
+                newOpportunity.getBusinessUnit(),
+                newOpportunity.getSubmissionDate()
+        );
+
+        // Step 2: Further filter the potential matches using more detailed criteria
+        return potentialMatches.stream()
+                .filter(existingOpp -> isDuplicate(newOpportunity, existingOpp))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isDuplicate(Form newOpp, Form existingOpp) {
+        // Check for exact matches on key fields
+        if (Objects.equals(newOpp.getOpportunity(), existingOpp.getOpportunity()) &&
+                Objects.equals(newOpp.getIndustrySegment(), existingOpp.getIndustrySegment()) &&
+                Objects.equals(newOpp.getBusinessUnit(), existingOpp.getBusinessUnit()) &&
+                Objects.equals(newOpp.getSubmissionDate(), existingOpp.getSubmissionDate())) {
+            return true;
+        }
+
+        // Check for high similarity in opportunity title using Levenshtein distance
+        if (LevenshteinDistance.getDefaultInstance().apply(
+                newOpp.getOpportunity(), existingOpp.getOpportunity()) <= 3) {
+            return true;
+        }
+
+        // Check for matches in multiple fields
+        int matchCount = 0;
+        if (Objects.equals(newOpp.getOpportunityType(), existingOpp.getOpportunityType())) matchCount++;
+        if (Objects.equals(newOpp.getAmountInrCrMin(), existingOpp.getAmountInrCrMin())) matchCount++;
+        if (Objects.equals(newOpp.getAmountInrCrMax(), existingOpp.getAmountInrCrMax())) matchCount++;
+        if (Objects.equals(newOpp.getPrimaryOfferingSegment(), existingOpp.getPrimaryOfferingSegment())) matchCount++;
+        if (Objects.equals(newOpp.getSecondaryOfferingSegment(), existingOpp.getSecondaryOfferingSegment())) matchCount++;
+
+        // Consider it a potential duplicate if 3 or more fields match
+        return matchCount >= 3;
     }
 
 

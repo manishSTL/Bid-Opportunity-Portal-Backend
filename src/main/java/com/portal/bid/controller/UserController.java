@@ -1,14 +1,10 @@
 package com.portal.bid.controller;
 
 import com.portal.bid.entity.User;
-import com.portal.bid.repository.UserRepository;
 import com.portal.bid.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,34 +14,52 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class UserController {
 
-
     @Autowired
     private UserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.getUserById(id);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return user.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
-//    @CrossOrigin(origins = "http://localhost:3000")
+
     @GetMapping("/allusers")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-//    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         Optional<User> updatedUser = userService.updateUser(id, userDetails);
-        if (updatedUser.isPresent()) {
-            return ResponseEntity.ok(updatedUser.get());
-        } else {
-            return ResponseEntity.notFound().build();
+        return updatedUser.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // New hierarchy-related endpoints
+
+    @GetMapping("/{id}/children")
+    public ResponseEntity<List<User>> getChildUsers(@PathVariable Long id) {
+        List<User> children = userService.getChildUsers(id);
+        return ResponseEntity.ok(children);
+    }
+
+    @GetMapping("/{id}/hierarchy")
+    public ResponseEntity<List<User>> getUserHierarchy(@PathVariable Long id) {
+        List<User> hierarchy = userService.getAllUsersInHierarchy(id);
+        return ResponseEntity.ok(hierarchy);
+    }
+
+    @PostMapping("/{childId}/assign-parent/{parentId}")
+    public ResponseEntity<?> assignParent(@PathVariable int childId, @PathVariable int parentId) {
+        try {
+            Optional<User> updatedUser = userService.assignParent(childId, parentId);
+            return updatedUser
+                    .map(user -> ResponseEntity.ok().body(user))
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

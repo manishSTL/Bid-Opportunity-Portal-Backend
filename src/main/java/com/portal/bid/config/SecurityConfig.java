@@ -1,13 +1,16 @@
 package com.portal.bid.config;
 
 import com.portal.bid.filter.SecurityFilter;
+import com.portal.bid.filter.ApiKeyAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,17 +35,48 @@ public class SecurityConfig {
     @Autowired
     private SecurityFilter secFilter;
 
+    @Autowired
+    private ApiKeyAuthFilter apiKeyAuthFilter;
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain apiKeyFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/scrape/receive")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().authenticated()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain publicEndpointsFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/user/saveUser", "/user/loginUser")
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(3)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disabling CSRF as not using form-based login
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/user/saveUser", "/user/loginUser").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
@@ -64,6 +98,4 @@ public class SecurityConfig {
         authenticationProvider.setPasswordEncoder(bCryptEncoder);
         return authenticationProvider;
     }
-
-
 }

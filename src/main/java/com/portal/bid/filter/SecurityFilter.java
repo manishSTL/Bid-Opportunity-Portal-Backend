@@ -66,7 +66,10 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
         System.out.println("Entering Security Filter");
-
+        if (request.getRequestURI().equals("/api/scrape/receive")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         // Extract the Authorization header
         String token = request.getHeader("Authorization");
         System.out.println("Authorization header: " + token);
