@@ -1,10 +1,9 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "scraped_data")
@@ -46,6 +45,16 @@ public class ScrapedData {
 
     @Column
     private String keyword;
+
+    // New Fields
+    @Column
+    private String QTR;  // Quarter
+
+    @Column
+    private String FY;   // Financial Year
+
+    @Column
+    private LocalDateTime createdAt;  // Timestamp of when the record is created
 
     // Getters and setters for all fields
 
@@ -143,5 +152,29 @@ public class ScrapedData {
 
     public void setKeyword(String keyword) {
         this.keyword = keyword;
+    }
+
+    public String getQTR() {
+        return QTR;
+    }
+
+    public void setQTR(String QTR) {
+        this.QTR = QTR;
+    }
+
+    public String getFY() {
+        return FY;
+    }
+
+    public void setFY(String FY) {
+        this.FY = FY;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
