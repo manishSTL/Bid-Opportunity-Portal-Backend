@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.ArrayList;
 
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class AuthController {
 
     @Autowired
@@ -153,7 +153,7 @@ public class AuthController {
             permissionNames.add(permissionName);  // Add permission name to the list
         }
 
-        String token = util.generateToken(username, permissionNames);
+        String token = util.generateToken(username, permissionNames, storedUser.getId());
         System.out.println("Generated JWT token: " + token);
 
         // Return response with the token

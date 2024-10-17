@@ -31,6 +31,9 @@ public class User {
     @Column(name = "department_id")
     private int departmentId;
 
+    @Column(name = "hierarchy_level")
+    private String hierarchy_level;
+
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
@@ -147,6 +150,14 @@ public class User {
 
     public void setParent(User parent) {
         this.parent = parent;
+    }
+
+    public String getHierarchy_level() {
+        return hierarchy_level;
+    }
+
+    public void setHierarchy_level(String hierarchy_level) {
+        this.hierarchy_level = hierarchy_level;
     }
 
     public enum Status {

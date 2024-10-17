@@ -19,7 +19,7 @@ public class JWTUtil {
     private String secret_key;
 
     // code to generate Token with permissions
-    public String generateToken(String subject, List<String> permissions) {
+    public String generateToken(String subject, List<String> permissions, int userId) {
         String tokenId = String.valueOf(new Random().nextInt(10000));
 
         return Jwts.builder()
@@ -28,11 +28,13 @@ public class JWTUtil {
                 .setIssuer("ABC_Ltd")
                 .setAudience("XYZ_Ltd")
                 .claim("permissions", permissions)  // Adding permissions as a claim
+                .claim("user_id", userId)            // Adding user_id as a claim
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)))
                 .signWith(SignatureAlgorithm.HS512, Base64.getEncoder().encode(secret_key.getBytes()))
                 .compact();
     }
+
 
     // code to get Claims from token
     public Claims getClaims(String token) {

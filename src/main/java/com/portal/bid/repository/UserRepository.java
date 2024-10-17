@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User,Long> {
 
@@ -19,4 +18,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     List<User> findByParent(User parent);
 
 //    User findByUsername(String email);
+    @Query("SELECT u FROM User u WHERE u.hierarchy_level = :hierarchy_level")
+    List<User> findByHierarchyLevel(@Param("hierarchy_level") String hierarchy_level);
 }

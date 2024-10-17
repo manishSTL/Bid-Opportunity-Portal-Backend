@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -282,6 +283,11 @@ public class OpportunityServiceImp implements OpportunityService {
 
         // Consider it a potential duplicate if 3 or more fields match
         return matchCount >= 3;
+    }
+
+    public String getFormName(Long formId) {
+        Optional<Form> formOptional = formRespository.findById(formId);
+        return formOptional.map(Form::getOpportunity).orElse("Unknown Form");
     }
 
 

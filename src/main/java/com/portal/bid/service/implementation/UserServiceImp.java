@@ -86,7 +86,7 @@ public class UserServiceImp implements UserService {
             user.setMobile(userDetails.getMobile());
             user.setDepartmentId(userDetails.getDepartmentId());
             user.setStatus(userDetails.getStatus());
-
+            user.setHierarchy_level(userDetails.getHierarchy_level());
             if (userDetails.getPasswordHash() != null && !userDetails.getPasswordHash().isEmpty()) {
                 user.setPasswordHash(passwordEncoder.encode(userDetails.getPasswordHash()));
             }

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/agp")
+@RequestMapping("/api/agp1")
 public class AgpController {
 
     private final AgpService agpService;
