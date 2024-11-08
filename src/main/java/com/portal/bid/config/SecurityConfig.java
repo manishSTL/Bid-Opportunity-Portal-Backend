@@ -62,7 +62,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain publicEndpointsFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/user/saveUser", "/api/user/loginUser")
+                .securityMatcher("/api/user/saveUser", "/api/user/loginUser","/api/user/renewToken")
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()

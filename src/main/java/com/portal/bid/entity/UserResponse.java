@@ -4,20 +4,23 @@ public class UserResponse {
 
     private String token;
     private String message;
-
+    private String refreshToken;
     // Constructor
-    public UserResponse(String token, String message) {
+    public UserResponse(String token,String refreshToken,String message) {
         this.token = token;
         this.message = message;
+        this.refreshToken = refreshToken;
     }
 
     // Getters and Setters
-    public String getToken() {
-        return token;
+
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getMessage() {
@@ -26,5 +29,13 @@ public class UserResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

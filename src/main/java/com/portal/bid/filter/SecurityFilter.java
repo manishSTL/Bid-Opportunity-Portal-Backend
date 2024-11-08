@@ -12,8 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.portal.bid.config.PermissionConfig;
 import com.portal.bid.security.CustomUserDetails;
+import com.portal.bid.service.TokenService;
 import com.portal.bid.service.UserRolePermissionService;
 import com.portal.bid.util.JWTUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,6 +44,10 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private Map<String, List<String>> permissionEndpointMap;
 
+
+    @Autowired
+    TokenService tokenService;
+
     @Autowired
     public SecurityFilter(PermissionConfig permissionConfig) {
         this.permissionEndpointMap = permissionConfig.permissionEndpointMap();
@@ -62,14 +68,10 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
         return false;
     }
-
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
         System.out.println("Entering Security Filter");
-        if (request.getRequestURI().equals("/api/scrape/receive")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+
         // Extract the Authorization header
         String token = request.getHeader("Authorization");
         System.out.println("Authorization header: " + token);
@@ -78,23 +80,50 @@ public class SecurityFilter extends OncePerRequestFilter {
             token = token.substring(7); // Remove "Bearer " prefix
             System.out.println("Extracted token: " + token);
 
-            String username = util.getSubject(token);
-            System.out.println("Extracted username: " + username);
-
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails user = userDetailsService.loadUserByUsername(username);
-                System.out.println("Loaded user details: " + user);
-
-                boolean isValid = util.isValidToken(token, user.getUsername());
-                System.out.println("Is token valid: " + isValid);
-
-                if (isValid) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("Authentication set in SecurityContext");
+            try {
+                // Check if the token is blacklisted
+                if (tokenService.isTokenBlacklisted(token)) {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.getWriter().write("Token is blacklisted");
+                    return; // Stop further processing as the token is blacklisted
                 }
+
+                // Extract username from the token
+                String username = util.getSubject(token);
+                System.out.println("Extracted username: " + username);
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    // Validate the token, and check if it's expired
+                    if (util.isTokenExpired(token)) {
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.getWriter().write("Token has expired");
+                        return; // Stop processing further, as the token is expired
+                    }
+
+                    // If token is valid, load user details
+                    UserDetails user = userDetailsService.loadUserByUsername(username);
+                    System.out.println("Loaded user details: " + user);
+
+                    boolean isValid = util.isValidToken(token, user.getUsername());
+                    System.out.println("Is token valid: " + isValid);
+
+                    if (isValid) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        System.out.println("Authentication set in SecurityContext");
+                    }
+                }
+            } catch (ExpiredJwtException e) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.getWriter().write("Token has expired");
+                return; // Do not continue processing, as the token is expired
+            } catch (Exception e) {
+                // Handle other exceptions, such as invalid tokens
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.getWriter().write("Invalid token");
+                return; // Stop further processing on invalid token
             }
         } else {
             System.out.println("Token is null or does not start with 'Bearer '");
@@ -135,5 +164,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
         System.out.println("Filter chain processed");
     }
+
+
+
 }
 
