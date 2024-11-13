@@ -1,6 +1,8 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,23 +15,53 @@ public class AgpData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "User is required")
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
+    @NotNull(message = "Department is required")
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @NotNull(message = "Business segment is required")
     @ManyToOne
     @JoinColumn(name = "business_segment_id")
     private BusinessSegment businessSegment;
 
+    @NotBlank(message = "Financial year is required")
+//    @Pattern(regexp = "\\d{4}-\\d{4}", message = "Financial year must be in format YYYY-YYYY")
+    @Column(nullable = false)
     private String financialYear;
+
+    @NotBlank(message = "Quarter is required")
+    @Pattern(regexp = "Q[1-4]", message = "Quarter must be in format Q1, Q2, Q3, or Q4")
+    @Column(nullable = false)
     private String quarter;
+
+//    @NotNull(message = "AGP value is required")
+//    @DecimalMin(value = "0.0", inclusive = true, message = "AGP value must be greater than or equal to 0")
+    @Digits(integer = 12, fraction = 2, message = "AGP value must have at most 12 digits in total and 2 decimal places")
+    @Column(nullable = false)
     private BigDecimal agpValue;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     // Getters and Setters
 

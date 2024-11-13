@@ -1,7 +1,8 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.*;
+
 import java.sql.Timestamp;
 
 @Entity
@@ -12,19 +13,31 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    @NotNull(message = "Employee ID is required")
+    @Min(value = 1, message = "Employee ID must be greater than 0")
     @Column(name = "employee_id", unique = true, nullable = false)
     private int employeeId;
 
+    @NotBlank(message = "First name is required")
+    @Size(min = 2, max = 255, message = "First name must be between 2 and 255 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s-']+$", message = "First name can only contain letters, spaces, hyphens and apostrophes")
     @Column(name = "first_name", length = 255)
     private String firstName;
 
+    @NotBlank(message = "Last name is required")
+    @Size(min = 2, max = 255, message = "Last name must be between 2 and 255 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s-']+$", message = "Last name can only contain letters, spaces, hyphens and apostrophes")
     @Column(name = "last_name", length = 255)
     private String lastName;
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            message = "Email must be in valid format (e.g., user@domain.com)")
     @Column(name = "email", unique = true)
-    @Email(message = "Invalid email format", regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
     private String email;
 
+    @Pattern(regexp = "^[0-9]{10}$", message = "Mobile number must be 10 digits")
     @Column(name = "mobile", length = 20)
     private String mobile;
 
@@ -34,6 +47,8 @@ public class User {
     @Column(name = "hierarchy_level")
     private String hierarchy_level;
 
+    @NotBlank(message = "Password is required")
+//    @Size(min = 60, max = 60, message = "Invalid password hash length")
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
@@ -43,8 +58,9 @@ public class User {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @Column(name = "status")
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private Status status;
 
     @ManyToOne

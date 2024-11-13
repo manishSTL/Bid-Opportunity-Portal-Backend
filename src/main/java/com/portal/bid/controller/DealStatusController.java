@@ -5,12 +5,17 @@ import com.portal.bid.entity.DealStatus;
 import com.portal.bid.entity.GoNoGoStatus;
 import com.portal.bid.service.BusinessUnitService;
 import com.portal.bid.service.DealStatusService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/deal-status")
@@ -21,7 +26,7 @@ public class DealStatusController {
 
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping
-    public ResponseEntity<DealStatus> createDealStatus(@RequestBody DealStatus dealStatus) {
+    public ResponseEntity<DealStatus> createDealStatus(@Valid @RequestBody DealStatus dealStatus) {
         System.out.println("herrrr1");
         DealStatus createdUnit = dealStatusService.createDealStatus(dealStatus);
         System.out.println("herrrr2");
@@ -45,7 +50,7 @@ public class DealStatusController {
 
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/{id}")
-    public ResponseEntity<DealStatus> updateDealStatus(@PathVariable Long id, @RequestBody DealStatus dealStatus) {
+    public ResponseEntity<DealStatus> updateDealStatus(@PathVariable Long id,@Valid @RequestBody DealStatus dealStatus) {
         DealStatus updatedUnit = dealStatusService.updateDealStatus(id, dealStatus);
         return updatedUnit != null ? new ResponseEntity<>(updatedUnit, HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
@@ -67,5 +72,18 @@ public class DealStatusController {
             entryFound = dealStatusService.getAllDealStatus();
         }
         return ResponseEntity.ok(entryFound);
+    }
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

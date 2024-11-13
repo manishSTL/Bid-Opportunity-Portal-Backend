@@ -15,6 +15,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "plan")
@@ -35,10 +37,14 @@ public class PlanAction {
     @Column(name = "week")
     private Integer week;
 
+    @Size(min = 3, max = 50, message = "Plan must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Plan can only contain letters, numbers, dots, hyphens, and underscores")
     @JsonProperty("plan")
     @Column(name = "plan")
     private String plan;
 
+    @Size(min = 3, max = 50, message = "Action must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Action can only contain letters, numbers, dots, hyphens, and underscores")
     @JsonProperty("action")
     @Column(name = "action")
     private String action;

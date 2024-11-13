@@ -2,6 +2,8 @@ package com.portal.bid.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +19,8 @@ public class DealStatus {
     @Column(name = "form_id", nullable = false)
     private Long form_id;
 
-
+    @Size(min = 3, max = 30, message = "Deal status must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Deal status can only contain letters, numbers, dots, hyphens, and underscores")
     @JsonProperty("deal_status")
     @Column(name = "deal_status", nullable = false)
     private String deal_status;

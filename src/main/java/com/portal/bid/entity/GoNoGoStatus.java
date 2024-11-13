@@ -2,6 +2,8 @@ package com.portal.bid.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +25,10 @@ public class GoNoGoStatus {
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
+
     @JsonProperty("status")
+    @Size(min = 3, max = 30, message = "Status must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Status can only contain letters and spaces")
     @Column(name = "status",nullable = false)
     private String status;
 

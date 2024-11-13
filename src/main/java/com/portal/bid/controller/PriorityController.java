@@ -2,13 +2,18 @@ package com.portal.bid.controller;
 
 import com.portal.bid.entity.Priority;
 import com.portal.bid.service.PriorityService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -20,7 +25,7 @@ public class PriorityController {
 
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping
-    public ResponseEntity<Priority> createPriority(@RequestBody Priority priority) {
+    public ResponseEntity<Priority> createPriority(@Valid @RequestBody Priority priority) {
         priority.setCreatedAt(LocalDateTime.now());
         Priority createdPriority = service.save(priority);
         return new ResponseEntity<>(createdPriority, HttpStatus.CREATED);
@@ -28,7 +33,7 @@ public class PriorityController {
 
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/{id}")
-    public ResponseEntity<Priority> updatePriority(@PathVariable Integer id, @RequestBody Priority priority) {
+    public ResponseEntity<Priority> updatePriority(@PathVariable Integer id,@Valid @RequestBody Priority priority) {
         priority.setUpdatedAt(LocalDateTime.now());
         if (priority.getUpdatedBy() == null || priority.getPriority() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Return 400 Bad Request if validation fails
@@ -68,5 +73,18 @@ public class PriorityController {
     public ResponseEntity<List<Priority>> getAllPriorities() {
         List<Priority> priorities = service.findAll();
         return new ResponseEntity<>(priorities, HttpStatus.OK);
+    }
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

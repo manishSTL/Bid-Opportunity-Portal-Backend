@@ -4,12 +4,18 @@ package com.portal.bid.controller;
 import com.portal.bid.entity.GoNoGoStatus;
 import com.portal.bid.entity.PlanAction;
 import com.portal.bid.service.GoNoGoStatusService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/gonogostatus")
@@ -19,14 +25,14 @@ public class GoNoGoStatusController {
     private GoNoGoStatusService goNoGoStatusService;
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping
-    ResponseEntity<GoNoGoStatus> createStatus(@RequestBody GoNoGoStatus entry){
+    ResponseEntity<GoNoGoStatus> createStatus(@Valid @RequestBody GoNoGoStatus entry){
         GoNoGoStatus createdEntry  = goNoGoStatusService.createEntry(entry);
         return ResponseEntity.ok(createdEntry);
     }
 
 //    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/{id}")
-    ResponseEntity<GoNoGoStatus> updateStatus(@PathVariable  Long id ,@RequestBody GoNoGoStatus entry){
+    ResponseEntity<GoNoGoStatus> updateStatus(@PathVariable  Long id ,@Valid @RequestBody GoNoGoStatus entry){
         entry.setCreatedAt(LocalDateTime.now());
 //        if(entry.getCreatedBy()==null ){
 //            return ResponseEntity.badRequest().build();
@@ -53,7 +59,18 @@ public class GoNoGoStatusController {
     }
 
 
-
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
 
 
 

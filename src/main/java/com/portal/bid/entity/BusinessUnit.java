@@ -1,6 +1,9 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,6 +14,8 @@ public class BusinessUnit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Size(min = 3, max = 30, message = "Business unit must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Business unit can only contain letters and spaces")
     @Column(name = "business_unit", nullable = true)
     private String businessUnit;
 

@@ -7,18 +7,23 @@ import com.portal.bid.service.EmailService;
 import com.portal.bid.service.OpportunityService;
 import com.portal.bid.service.UserService;
 import com.portal.bid.service.implementation.OpportunityServiceImp;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,7 +41,7 @@ public class FormController {
 
     // Create Opportunity
     @PostMapping
-    public ResponseEntity<?> createOpportunity(@RequestBody Form opportunity, @RequestParam(defaultValue = "false") boolean forcecreate) {
+    public ResponseEntity<?> createOpportunity(@Valid @RequestBody Form opportunity, @RequestParam(defaultValue = "false") boolean forcecreate) {
         // Set the current date for createdAt and updatedAt
         LocalDateTime now = LocalDateTime.now();
         opportunity.setCreatedAt(now);
@@ -102,7 +107,7 @@ public class FormController {
 
     // Update Opportunity
     @PutMapping("/{id}")
-    public ResponseEntity<Form> updateOpportunity(@PathVariable Long id, @RequestBody Form updatedOpportunity) {
+    public ResponseEntity<Form> updateOpportunity(@PathVariable Long id,@Valid @RequestBody Form updatedOpportunity) {
         // Set the current user as the updatedBy (assuming the same field createdBy is used for tracking both create and update)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
@@ -178,6 +183,19 @@ public class FormController {
 
         int totalOpportunities = filteredOpportunities.size();
         return ResponseEntity.ok(new OpportunitiesResponse(totalOpportunities, filteredOpportunities));
+    }
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }
 

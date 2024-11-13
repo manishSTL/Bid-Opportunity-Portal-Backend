@@ -1,6 +1,9 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,7 +14,10 @@ public class GoNoGoMaster {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+
     @Column(name = "go_no_go_status")
+    @Size(max = 30, message = "Go-No-Go Status must not exceed 30 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Go-No-Go Status can only contain letters and spaces")
     private String goNogoStatus;
 
     @Column(name = "created_at", updatable = false)

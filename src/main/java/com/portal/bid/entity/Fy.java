@@ -1,6 +1,8 @@
 package com.portal.bid.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +14,9 @@ public class Fy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "ob_fy",nullable = true)
+    @Column(name = "ob_fy", nullable = true)
+    @Min(value = 2001, message = "obFy must be a four-digit year greater than 2000.")
+    @Max(value = 9999, message = "obFy must be a four-digit year.")
     private int obFy;
 
     @Column(name="created_at",nullable = true)
