@@ -30,12 +30,12 @@ public class JWTUtil {
         return Jwts.builder()
                 .setId(tokenId)
                 .setSubject(subject)
-                .setIssuer("ABC_Ltd")
-                .setAudience("XYZ_Ltd")
+                .setIssuer("STL_Tech")
+                .setAudience("STL_GSB")
                 .claim("permissions", permissions)  // Adding permissions as a claim
                 .claim("user_id", userId)           // Adding user_id as a claim
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1))) // 1 minute expiration
+                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15))) // 1 minute expiration
                 .signWith(SignatureAlgorithm.HS512, Base64.getEncoder().encode(secret_key.getBytes()))
                 .compact();
     }
@@ -46,7 +46,7 @@ public class JWTUtil {
                 .setIssuer("ABC_Ltd")
                 .claim("user_id", userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5))) // 5 minutes expiration
+                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30))) // 5 minutes expiration
                 .signWith(SignatureAlgorithm.HS512, Base64.getEncoder().encode(secret_key.getBytes()))
                 .compact();
     }
@@ -111,4 +111,5 @@ public class JWTUtil {
     public String getSubject(String token) {
         return getClaims(token).getSubject();
     }
+
 }

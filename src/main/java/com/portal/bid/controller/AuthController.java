@@ -12,6 +12,7 @@ import com.portal.bid.util.JWTUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -48,9 +49,8 @@ public class AuthController {
     @Autowired
     private TokenService tokenService;
 
-
     @PostMapping("/saveUser")
-    public ResponseEntity<String> saveUser(@RequestBody User user) {
+    public ResponseEntity<String> saveUser(@Valid @RequestBody User user) {
         if (isInvalidUserInput(user)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Validation failed: All required fields must be provided.");
@@ -286,6 +286,7 @@ public class AuthController {
 
 
     // In package `com.portal.bid.controller`
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken,
                                          @RequestHeader("RefreshToken") String refreshToken) {

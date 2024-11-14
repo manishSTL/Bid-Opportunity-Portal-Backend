@@ -1,6 +1,7 @@
 package com.portal.bid.filter;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.portal.bid.config.EndpointPermission;
+import com.portal.bid.config.ModulePermissions;
 import com.portal.bid.config.PermissionConfig;
 import com.portal.bid.security.CustomUserDetails;
 import com.portal.bid.service.TokenService;
@@ -42,32 +45,48 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     private PermissionConfig permissionConfig;
 
-    private Map<String, List<String>> permissionEndpointMap;
+    @Autowired
+    private Map<String, List<EndpointPermission>> permissionEndpointMap;
 
+//    @Autowired
+//    private Map<String, ModulePermissions> modulePermissionsMap;
 
     @Autowired
     TokenService tokenService;
 
-    @Autowired
-    public SecurityFilter(PermissionConfig permissionConfig) {
-        this.permissionEndpointMap = permissionConfig.permissionEndpointMap();
-    }
+//    @Autowired
+//    public SecurityFilter(PermissionConfig permissionConfig) {
+//        this.permissionEndpointMap = permissionConfig.permissionEndpointMap();
+//    }
 
 //    @Override
 //    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 //
 //    }
-
-    // Check if the user has permission for the HTTP method
-    private boolean hasPermissionForMethod(Set<String> permissions, String httpMethod) {
-        for (String permission : permissions) {
-            List<String> allowedMethods = permissionEndpointMap.get(permission);
-            if (allowedMethods != null && allowedMethods.contains(httpMethod)) {
-                return true;
+private boolean hasPermissionForEndpoint(List<String> userPermissions, String requestPath, String httpMethod) {
+    for (String permission : userPermissions) {
+        List<EndpointPermission> endpointPermissions = permissionEndpointMap.get(permission);
+        if (endpointPermissions != null) {
+            for (EndpointPermission endpoint : endpointPermissions) {
+                if (endpoint.matches(requestPath, httpMethod)) {
+                    return true;
+                }
             }
         }
-        return false;
     }
+    return false;
+}
+
+    // Check if the user has permission for the HTTP method
+//    private boolean hasPermissionForMethod(Set<String> permissions, String httpMethod) {
+//        for (String permission : permissions) {
+//            List<String> allowedMethods = permissionEndpointMap.get(permission);
+//            if (allowedMethods != null && allowedMethods.contains(httpMethod)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
         System.out.println("Entering Security Filter");
@@ -143,16 +162,13 @@ public class SecurityFilter extends OncePerRequestFilter {
             }
 
             // Fetch user permissions
-            Set<String> userPermissions = userRolePermissionService.getPermissionsForUser(user.getId());
-            System.out.println("User permissions: " + userPermissions);
+            String token1 = request.getHeader("Authorization").substring(7);
+            List<String> userPermissions = util.getPermissionsFromToken(token1);
 
-            // Get the HTTP method of the request
+            String requestPath = request.getRequestURI();
             String httpMethod = request.getMethod();
-            System.out.println("Request method: " + httpMethod);
 
-            // Check permissions against the HTTP method
-            if (!hasPermissionForMethod(userPermissions, httpMethod)) {
-                System.out.println("User does not have permission for method: " + httpMethod);
+            if (!hasPermissionForEndpoint(userPermissions, requestPath, httpMethod)) {
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 response.getWriter().write("You don't have permission to access this resource.");
                 return;
@@ -168,4 +184,3 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 
 }
-
