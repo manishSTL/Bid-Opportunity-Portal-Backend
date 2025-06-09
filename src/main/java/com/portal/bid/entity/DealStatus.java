@@ -1,11 +1,21 @@
 package com.portal.bid.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "deal_status")
@@ -19,27 +29,29 @@ public class DealStatus {
     @Column(name = "form_id", nullable = false)
     private Long form_id;
 
-    @Size(min = 3, max = 30, message = "Deal status must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Deal status can only contain letters, numbers, dots, hyphens, and underscores")
-    @JsonProperty("deal_status")
-    @Column(name = "deal_status", nullable = false)
-    private String deal_status;
+    // @Size(min = 3, max = 30, message = "Deal status must be between 3 and 50 characters")
+    // @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Deal status can only contain letters, numbers, dots, hyphens, and underscores")
+    // @JsonProperty("deal_status")
+    // @Column(name = "deal_status", nullable = false)
+    // private String deal_status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deal_status")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Deal dealStatus;
+
 
     @JsonProperty("created_at")
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @JsonProperty("created_by")
-    @Column(name = "created_by", updatable = false,nullable = false)
+    @Column(name = "created_by", updatable = false)
     private String createdBy;
 
     @JsonProperty("updated_at")
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @JsonProperty("status")
-    @Column(name = "status", nullable = false)
-    private String status;
 
     @PrePersist
     protected void onCreate() {
@@ -76,13 +88,7 @@ public class DealStatus {
         this.id = id;
     }
 
-    public String getDeal_status() {
-        return deal_status;
-    }
-
-    public void setDeal_status(String deal_status) {
-        this.deal_status = deal_status;
-    }
+    
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -100,11 +106,14 @@ public class DealStatus {
         this.updatedAt = updatedAt;
     }
 
-    public String getStatus() {
-        return status;
+    public Deal getDealStatus() {
+        return dealStatus;
     }
+    
+    public void setDealStatus(Deal dealStatus) {
+        this.dealStatus = dealStatus;
+    }
+    
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    
 }

@@ -38,16 +38,17 @@ public class PlanAction {
     private Integer week;
 
     @Size(min = 3, max = 50, message = "Plan must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Plan can only contain letters, numbers, dots, hyphens, and underscores")
+    @Pattern(regexp = "^[a-zA-Z0-9_.\\-\\s]*$", message = "Plan can only contain letters, numbers, spaces, dots, hyphens, and underscores")
     @JsonProperty("plan")
     @Column(name = "plan")
     private String plan;
 
     @Size(min = 3, max = 50, message = "Action must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Action can only contain letters, numbers, dots, hyphens, and underscores")
+    @Pattern(regexp = "^[a-zA-Z0-9_.\\-\\s]*$", message = "Action can only contain letters, numbers, spaces, dots, hyphens, and underscores")
     @JsonProperty("action")
     @Column(name = "action")
     private String action;
+
 
     @JsonProperty("created_at")
     @Column(name = "created_at")

@@ -1,24 +1,9 @@
 package com.portal.bid.filter;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.portal.bid.config.EndpointPermission;
-import com.portal.bid.config.ModulePermissions;
-import com.portal.bid.config.PermissionConfig;
-import com.portal.bid.security.CustomUserDetails;
-import com.portal.bid.service.TokenService;
-import com.portal.bid.service.UserRolePermissionService;
-import com.portal.bid.util.JWTUtil;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +14,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.portal.bid.config.EndpointPermission;
+import com.portal.bid.config.PermissionConfig;
+import com.portal.bid.security.CustomUserDetails;
+import com.portal.bid.service.TokenService;
+import com.portal.bid.service.UserRolePermissionService;
+import com.portal.bid.util.JWTUtil;
+
+import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {

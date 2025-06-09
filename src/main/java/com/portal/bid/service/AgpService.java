@@ -1,10 +1,9 @@
 package com.portal.bid.service;
 
-import com.portal.bid.entity.Agp;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.portal.bid.entity.Agp;
 
 
 public interface AgpService {
@@ -12,4 +11,5 @@ public interface AgpService {
     Optional<Agp> findById(Long id);
     Agp save(Agp agp);
     void deleteById(Long id);
+    Agp updateAgp(Agp agp);
 }
