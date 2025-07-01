@@ -43,6 +43,9 @@ public class LeadRequestMapper {
             setStringValueIfPresent(rootNode, "secondaryOfferingSegment", leadDTO::setSecondaryOfferingSegment);
             setStringValueIfPresent(rootNode, "primaryOwner", leadDTO::setPrimaryOwner);
             setStringValueIfPresent(rootNode, "solutionSpoc", leadDTO::setSolutionSpoc);
+            setStringValueIfPresent(rootNode, "scmSpoc", leadDTO::setScmSpoc);
+            setStringValueIfPresent(rootNode, "remarks", leadDTO::setRemarks);
+            setStringValueIfPresent(rootNode, "pqTq_remarks", leadDTO::setPqTq_remarks);
             
             setIntegerValueIfPresent(rootNode, "probability", leadDTO::setProbability);
             setIntegerValueIfPresent(rootNode, "projectTenureMonths", leadDTO::setProjectTenureMonths);

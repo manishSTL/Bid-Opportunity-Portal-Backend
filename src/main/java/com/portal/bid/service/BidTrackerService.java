@@ -71,7 +71,8 @@ public class BidTrackerService {
         bidTracker.setPricingDoneDate(dto.getPricingDoneDate());
         bidTracker.setTenderSubmissionDate(dto.getTenderSubmissionDate());
         bidTracker.setBidOpening(dto.getBidOpening());
-        
+        bidTracker.setBoqReadiness(dto.getBoqReadiness());
+        bidTracker.setPdTq(dto.getPdTq());
         if (dto.getDealStatusId() != null) {
             bidTracker.setDealStatus(dealRepository.findById(dto.getDealStatusId())
                     .orElseThrow(() -> new ResourceNotFoundException("Deal status not found with id: " + dto.getDealStatusId())));
@@ -102,6 +103,8 @@ public class BidTrackerService {
                 .bidOpening(entity.getBidOpening())
                 .dealStatusId(entity.getDealStatus() != null ? entity.getDealStatus().getId() : null)
                 .dealStatusName(entity.getDealStatus() != null ? entity.getDealStatus().getDealStatus() : null)
+                .pdTq(entity.getPdTq())
+                .boqReadiness(entity.getBoqReadiness())
                 .createdDate(entity.getCreatedDate())
                 .createdBy(entity.getCreatedBy() != null ? entity.getCreatedBy().getId() : null)
                 .createdByName(entity.getCreatedBy() != null ? entity.getCreatedBy().getFirstName() : null)

@@ -30,6 +30,8 @@ public class BidTrackerDTO {
     private LocalDate bidOpening;
     private Integer dealStatusId;
     private String dealStatusName;
+    private Boolean pdTq;
+    private Boolean boqReadiness;
     private LocalDateTime createdDate;
     private Integer createdBy;
     private String createdByName;

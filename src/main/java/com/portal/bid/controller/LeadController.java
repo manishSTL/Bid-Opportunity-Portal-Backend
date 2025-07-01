@@ -142,6 +142,8 @@ public class LeadController {
         // Fetch user using email and get the ID
         User user = userService.findUserByEmail(currentUserEmail);
         Long userId = (long) user.getId();
+        System.out.println("000000000000000000000000000000000");
+        System.out.println(leadDTO.getScmSpoc());
         LeadResponseDTO updatedLead = leadService.updateLead(id, leadDTO, userId);
         return ResponseEntity.ok(updatedLead);
     }

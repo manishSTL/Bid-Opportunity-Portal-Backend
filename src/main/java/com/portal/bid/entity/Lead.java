@@ -182,6 +182,18 @@ public class Lead {
     @Column(name = "solution_spoc", length = 100)
     private String solutionSpoc;
 
+    @Size(max = 100, message = "SCM SPOC must be less than 100 characters")
+    @Column(name = "scm_spoc", length = 100)
+    private String scmSpoc;
+
+    @Size(max = 200, message = "Remarks must be less than 100 characters")
+    @Column(name = "remarks", length = 100)
+    private String remarks;
+
+    @Size(max = 200, message = "PQ/TQ remarks must be less than 100 characters")
+    @Column(name = "pqTq_remarks", length = 100)
+    private String pqTq_remarks;
+
     @Column(name = "rfp_release_date")
     private LocalDate rfpReleaseDate;
 

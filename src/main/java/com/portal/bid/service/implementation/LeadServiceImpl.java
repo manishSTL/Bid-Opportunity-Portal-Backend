@@ -192,6 +192,9 @@ public class LeadServiceImpl implements LeadService {
         lead.setProbability(dto.getProbability());
         lead.setPrimaryOwner(dto.getPrimaryOwner());
         lead.setSolutionSpoc(dto.getSolutionSpoc());
+        lead.setScmSpoc(dto.getScmSpoc());
+        lead.setRemarks(dto.getRemarks());
+        lead.setPqTq_remarks(dto.getPqTq_remarks());
         lead.setRfpReleaseDate(dto.getRfpReleaseDate());
         lead.setBidSubmissionDate(dto.getBidSubmissionDate());
     
@@ -355,6 +358,18 @@ public class LeadServiceImpl implements LeadService {
         if (dto.getSolutionSpoc() != null) {
             existingLead.setSolutionSpoc(dto.getSolutionSpoc());
         }
+
+        if (dto.getScmSpoc() != null) {
+            existingLead.setScmSpoc(dto.getScmSpoc());
+        }
+
+        if (dto.getRemarks() != null) {
+            existingLead.setRemarks(dto.getRemarks());
+        }
+
+         if (dto.getPqTq_remarks() != null) {
+            existingLead.setPqTq_remarks(dto.getPqTq_remarks());
+        }
     
         if (dto.getRfpReleaseDate() != null) {
             existingLead.setRfpReleaseDate(dto.getRfpReleaseDate());
@@ -416,6 +431,10 @@ public class LeadServiceImpl implements LeadService {
             .probability(lead.getProbability())
             .primaryOwner(lead.getPrimaryOwner())
             .solutionSpoc(lead.getSolutionSpoc())
+            .scmSpoc(lead.getScmSpoc())
+            .remarks(lead.getRemarks())
+            .pqTq_remarks(lead.getPqTq_remarks())
+
             .rfpReleaseDate(lead.getRfpReleaseDate())
             .bidSubmissionDate(lead.getBidSubmissionDate())
             .createdBy(lead.getCreatedBy() != null ? new UserDTO(lead.getCreatedBy().getId(), lead.getCreatedBy().getFirstName(), lead.getCreatedBy().getLastName()) : null)
@@ -443,13 +462,21 @@ public class LeadServiceImpl implements LeadService {
     private Specification<Lead> buildMultiFilterSpecification(LeadMultiFilterDTO filterDTO) {
         return Specification.where(inFyIds(filterDTO.getFyIds()))
                 .and(inDealStatusIds(filterDTO.getDealStatusIds()))
-                .and(inIndustrySegmentIds(filterDTO.getIndustrySegmentIds()));
+                .and(inIndustrySegmentIds(filterDTO.getIndustrySegmentIds()))
+                .and(inPartFyIds(filterDTO.getPartFyids()));
     }
 
     private Specification<Lead> inFyIds(List<Long> fyIds) {
         return (root, query, cb) -> {
             if (fyIds == null || fyIds.isEmpty()) return cb.conjunction();
             return root.get("obFy").get("id").in(fyIds);
+        };
+    }
+
+    private Specification<Lead> inPartFyIds(List<Long> fyIds) {
+        return (root, query, cb) -> {
+            if (fyIds == null || fyIds.isEmpty()) return cb.conjunction();
+            return root.get("partFy").get("id").in(fyIds);
         };
     }
 

@@ -44,6 +44,9 @@ public class LeadResponseDTO {
     private Integer probability;
     private String primaryOwner;
     private String solutionSpoc;
+    private String scmSpoc;
+    private String remarks;
+    private String pqTq_remarks;
     private LocalDate rfpReleaseDate;
     private LocalDate bidSubmissionDate;
     private UserDTO createdBy;
