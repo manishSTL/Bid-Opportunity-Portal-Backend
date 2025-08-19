@@ -3,6 +3,7 @@ package com.portal.bid.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -517,5 +518,99 @@ public class LeadController {
     }
 
     
+
+
+    @Operation(summary = "Get Segment-wise Total Amount Summary",
+           description = "Retrieves aggregated sums of amounts by industry segment")
+@ApiResponses(value = {
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Segment summary retrieved successfully",
+        content = @Content(schema = @Schema(implementation = Map.class))
+    )
+})
+@PostMapping("/segment-summary")
+public ResponseEntity<Map<String, BigDecimal>> getSegmentSummary(@RequestBody LeadMultiFilterDTO filterDTO) {
+   
+    // Fetch all leads based on filters
+    List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "industrySegment"));
+
+
+    // Group and sum by industry segment
+    Map<String, BigDecimal> segmentWiseSum = leads.stream()
+        .filter(lead -> lead.getIndustrySegment() != null && lead.getIndustrySegment().getName() != null)
+        .collect(Collectors.groupingBy(
+            lead -> lead.getIndustrySegment().getName(),
+            Collectors.reducing(BigDecimal.ZERO,
+                lead -> lead.getAmount() != null ? lead.getAmount() : BigDecimal.ZERO,
+                BigDecimal::add
+            )
+        ));
+
+
+    return ResponseEntity.ok(segmentWiseSum);
+}
+
+
+  @PostMapping("/sales-owner-deal-status")
+  public ResponseEntity<Map<String, Long>> getSalesOwnerDealStatus(@RequestBody LeadMultiFilterDTO filterDTO) {
+    List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "dealStatus"));
+   
+    // Filter by sales owner if specified and not "All" - FIXED VERSION
+    String salesOwner = filterDTO.getSalesOwner() != null ? filterDTO.getSalesOwner().toString() : null;
+    if (salesOwner != null &&
+        !salesOwner.isEmpty() &&
+        !"All".equalsIgnoreCase(salesOwner)) {
+        leads = leads.stream()
+            .filter(lead -> lead.getPrimaryOwner() != null &&
+                           lead.getPrimaryOwner().equals(salesOwner))
+            .collect(Collectors.toList());
+    }
+   
+    Map<String, Long> dealStatusWiseCount = leads.stream()
+        .filter(lead -> lead.getDealStatus() != null && lead.getDealStatus().getDealStatus() != null)
+        .collect(Collectors.groupingBy(
+            lead -> lead.getDealStatus().getDealStatus(),
+            Collectors.counting()
+        ));
+   
+    return ResponseEntity.ok(dealStatusWiseCount);
+}
+
+
+    @PostMapping("/sales-owner-summary")
+     public ResponseEntity<Map<String, Long>> getSalesOwnerSummary(@RequestBody LeadMultiFilterDTO filterDTO) {
+     // Fetch all leads based on filters
+     List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "id"));
+   
+     // Group and count by primary owner
+        Map<String, Long> salesOwnerWiseCount = leads.stream()
+         .filter(lead -> lead.getPrimaryOwner() != null)
+         .collect(Collectors.groupingBy(
+            LeadResponseDTO::getPrimaryOwner,
+            Collectors.counting()
+         ));
+   
+      return ResponseEntity.ok(salesOwnerWiseCount);
+    }
+
+    @PostMapping("/participation-summary")
+    public ResponseEntity<Map<String, Object>> getParticipationSummary(@RequestBody LeadMultiFilterDTO filterDTO) {
+        List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "obMmm"));
+    
+        // Count participation by month (total count of leads regardless of status)
+        Map<String, Long> monthWiseCount = leads.stream()
+            .filter(lead -> lead.getObMmm() != null)
+            .collect(Collectors.groupingBy(
+                LeadResponseDTO::getObMmm,
+                Collectors.counting()
+            ));
+    
+        Map<String, Object> response = new HashMap<>();
+        response.put("monthWiseCount", monthWiseCount);
+    
+        return ResponseEntity.ok(response);
+    }
+
 
 }

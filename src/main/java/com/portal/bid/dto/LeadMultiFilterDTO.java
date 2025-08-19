@@ -10,4 +10,5 @@ public class LeadMultiFilterDTO {
     private List<Long> dealStatusIds;
     private List<Long> industrySegmentIds;
     private List<Long> partFyids;
+    private String salesOwner;
 }
