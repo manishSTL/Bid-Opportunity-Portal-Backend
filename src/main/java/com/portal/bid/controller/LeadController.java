@@ -552,29 +552,29 @@ public ResponseEntity<Map<String, BigDecimal>> getSegmentSummary(@RequestBody Le
 }
 
 
-  @PostMapping("/sales-owner-deal-status")
-  public ResponseEntity<Map<String, Long>> getSalesOwnerDealStatus(@RequestBody LeadMultiFilterDTO filterDTO) {
+@PostMapping("/sales-owner-deal-status-amount")
+public ResponseEntity<Map<String, Double>> getSalesOwnerDealStatusAmount(@RequestBody LeadMultiFilterDTO filterDTO) {
     List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "dealStatus"));
-   
-    // Filter by sales owner if specified and not "All" - FIXED VERSION
+    
+    // Filter by sales owner if specified and not "All"
     String salesOwner = filterDTO.getSalesOwner() != null ? filterDTO.getSalesOwner().toString() : null;
-    if (salesOwner != null &&
-        !salesOwner.isEmpty() &&
-        !"All".equalsIgnoreCase(salesOwner)) {
+    if (salesOwner != null && !salesOwner.isEmpty() && !"All".equalsIgnoreCase(salesOwner)) {
         leads = leads.stream()
-            .filter(lead -> lead.getPrimaryOwner() != null &&
-                           lead.getPrimaryOwner().equals(salesOwner))
+            .filter(lead -> lead.getPrimaryOwner() != null && lead.getPrimaryOwner().equals(salesOwner))
             .collect(Collectors.toList());
     }
-   
-    Map<String, Long> dealStatusWiseCount = leads.stream()
-        .filter(lead -> lead.getDealStatus() != null && lead.getDealStatus().getDealStatus() != null)
+    
+    // Group by deal status and sum amounts instead of counting
+    Map<String, Double> dealStatusWiseAmount = leads.stream()
+        .filter(lead -> lead.getDealStatus() != null && 
+                       lead.getDealStatus().getDealStatus() != null &&
+                       lead.getAmount() != null)
         .collect(Collectors.groupingBy(
             lead -> lead.getDealStatus().getDealStatus(),
-            Collectors.counting()
+            Collectors.summingDouble(lead -> lead.getAmount() != null ? lead.getAmount().doubleValue() : 0.0) // Sum amounts instead of counting
         ));
-   
-    return ResponseEntity.ok(dealStatusWiseCount);
+    
+    return ResponseEntity.ok(dealStatusWiseAmount);
 }
 
 
@@ -611,6 +611,30 @@ public ResponseEntity<Map<String, BigDecimal>> getSegmentSummary(@RequestBody Le
     
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/sales-owner-amount-summary")
+    public ResponseEntity<Map<String, BigDecimal>> getSalesOwnerAmountSummary(@RequestBody LeadMultiFilterDTO filterDTO) {
+      List<LeadResponseDTO> leads = leadService.getAllLeadsByMultiFilters(filterDTO, Sort.by(Sort.Direction.ASC, "primaryOwner"));
+    
+        // Group and sum amounts by primary owner
+        Map<String, BigDecimal> salesOwnerWiseAmount = leads.stream()
+         .filter(lead -> lead.getPrimaryOwner() != null)
+         .collect(Collectors.groupingBy(
+            LeadResponseDTO::getPrimaryOwner,
+            Collectors.reducing(BigDecimal.ZERO, 
+                lead -> lead.getAmount() != null ? lead.getAmount() : BigDecimal.ZERO, 
+                BigDecimal::add
+            )
+        ));
+    
+    return ResponseEntity.ok(salesOwnerWiseAmount);
+}
+
+@GetMapping("/sales-owners")
+public ResponseEntity<List<String>> getSalesOwners() {
+    List<String> salesOwners = leadService.getAllSalesOwners(); // You need this method in service
+    return ResponseEntity.ok(salesOwners);
+}
 
 
 }

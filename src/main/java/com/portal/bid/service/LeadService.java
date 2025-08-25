@@ -31,5 +31,6 @@ public interface LeadService {
     Page<LeadResponseDTO> getLeadsBySpecification(Specification<Lead> spec, Pageable pageable);
     Page<LeadResponseDTO> getLeadsByMultiFilters(LeadMultiFilterDTO filterDTO, Pageable pageable);
     public List<LeadResponseDTO> getAllLeadsByMultiFilters(LeadMultiFilterDTO filterDTO, Sort sort);
+    List<String> getAllSalesOwners();
 }
 

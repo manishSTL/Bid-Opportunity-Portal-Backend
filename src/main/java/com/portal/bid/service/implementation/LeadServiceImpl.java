@@ -501,5 +501,12 @@ public class LeadServiceImpl implements LeadService {
     return leads.stream().map(this::convertToResponseDTO).collect(Collectors.toList());
 }
 
+
+    @Override
+    public List<String> getAllSalesOwners() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAllSalesOwners'");
+    }
+
 }
 
