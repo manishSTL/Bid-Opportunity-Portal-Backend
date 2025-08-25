@@ -1,8 +1,12 @@
 package com.portal.bid.config;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.util.*;
 
 @Configuration
 public class PermissionConfig {
@@ -18,12 +22,16 @@ public class PermissionConfig {
                 new EndpointPermission("/api/go-no-go/**", Set.of("POST", "PUT")),
                 new EndpointPermission("/api/gonogostatus/**", Set.of("POST", "PUT")),
                 new EndpointPermission("/api/plans/**", Set.of("POST", "PUT")),
-                new EndpointPermission("/api/user/logout", Set.of("POST"))
+                new EndpointPermission("/api/user/logout", Set.of("POST")),
+                new EndpointPermission("/api/opportunities/**", Set.of("PUT", "POST")),
+                new EndpointPermission("/api/leads/**", Set.of("PUT", "POST")),
+                new EndpointPermission("/api/bid-trackers/**", Set.of("PUT", "POST"))
                 ));
 
         // Finance permissions
         permissionsMap.put("VIEW", List.of(
                 new EndpointPermission("/api/agp/**", Set.of("GET")),
+                new EndpointPermission("/api/leads/**", Set.of("GET", "POST")),
                 new EndpointPermission("/api/approvals/**", Set.of("GET")),
                 new EndpointPermission("/api/approval-requests/**", Set.of("GET")),
                 new EndpointPermission("/api/user/**", Set.of("GET")),
@@ -39,9 +47,11 @@ public class PermissionConfig {
                 new EndpointPermission("/api/priority/**", Set.of("GET")),
                 new EndpointPermission("/api/scrape/**", Set.of("GET")),
                 new EndpointPermission("/api/business-segments/**", Set.of("GET")),
-                new EndpointPermission("/api/agp1", Set.of("GET")),
+                new EndpointPermission("/api/agp1/**", Set.of("GET")),
                 new EndpointPermission("/api/allusers", Set.of("GET")),
-                new EndpointPermission("/api/user/logout", Set.of("POST"))
+                new EndpointPermission("/api/user/logout", Set.of("POST")),
+                new EndpointPermission("/api/bid-trackers/**", Set.of("GET")),
+                new EndpointPermission("/api/{userId}", Set.of("GET")) 
 
                 //new EndpointPermission("/api/reports/finance/**", Set.of("GET"))
         ));

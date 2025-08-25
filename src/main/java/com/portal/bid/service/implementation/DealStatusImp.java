@@ -1,16 +1,16 @@
 package com.portal.bid.service.implementation;
 
-import com.portal.bid.entity.DealStatus;
-import com.portal.bid.entity.GoNoGoStatus;
-import com.portal.bid.repository.DealStatusRepository;
-import com.portal.bid.service.DealStatusService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.portal.bid.entity.DealStatus;
+import com.portal.bid.repository.DealStatusRepository;
+import com.portal.bid.service.DealStatusService;
 
 @Service
 public class DealStatusImp implements DealStatusService {
@@ -42,8 +42,7 @@ public class DealStatusImp implements DealStatusService {
         Optional<DealStatus> existingDealStatus = dealStatusRepository.findById(id);
         if (existingDealStatus.isPresent()) {
             DealStatus updatedDealStatus = existingDealStatus.get();
-            updatedDealStatus.setDeal_status(dealStatus.getDeal_status());
-            updatedDealStatus.setStatus(dealStatus.getStatus());
+            updatedDealStatus.setDealStatus(dealStatus.getDealStatus());
             updatedDealStatus.setUpdatedAt(LocalDateTime.now()); // Set the updatedAt timestamp
             return dealStatusRepository.save(updatedDealStatus);
         }

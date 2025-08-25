@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import com.portal.bid.service.TokenService;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.portal.bid.service.TokenService;
+
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -35,7 +36,7 @@ public class JWTUtil {
                 .claim("permissions", permissions)  // Adding permissions as a claim
                 .claim("user_id", userId)           // Adding user_id as a claim
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15))) // 1 minute expiration
+                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30))) // 1 minute expiration
                 .signWith(SignatureAlgorithm.HS512, Base64.getEncoder().encode(secret_key.getBytes()))
                 .compact();
     }
@@ -46,7 +47,7 @@ public class JWTUtil {
                 .setIssuer("ABC_Ltd")
                 .claim("user_id", userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30))) // 5 minutes expiration
+                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(50))) // 5 minutes expiration
                 .signWith(SignatureAlgorithm.HS512, Base64.getEncoder().encode(secret_key.getBytes()))
                 .compact();
     }

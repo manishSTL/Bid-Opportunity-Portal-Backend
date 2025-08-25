@@ -1,18 +1,28 @@
 package com.portal.bid.controller;
 
-import com.portal.bid.entity.Agp;
-import com.portal.bid.service.AgpService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.portal.bid.entity.Agp;
+import com.portal.bid.service.AgpService;
 
 @RestController
 @RequestMapping("/api/agp1")
@@ -29,6 +39,44 @@ public class AgpController {
     public List<Agp> getAllAgps() {
         return agpService.findAll();
     }
+
+    @GetMapping("/summary/{fy}")
+    public Map<String, Integer> getAgpSummaryByFy(@PathVariable String fy) {
+        return agpService.findAll().stream()
+            .filter(agp -> fy.equals(agp.getObFY())) // Filter by FY
+            .collect(Collectors.groupingBy(
+                Agp::getObQT, // Group by Quarter (obQT)
+                Collectors.summingInt(Agp::getAgpValue) // Sum agpValue for each quarter
+            ));
+    }
+
+    @GetMapping("/ytd-summary/{fy}")
+    public Map<String, Integer> getAgpYtdSummary(@PathVariable String fy) {
+        int currentYear = LocalDate.now().getYear();
+        String currentFy = "FY" + (LocalDate.now().getMonthValue() >= 4 ? currentYear + 1 : currentYear);
+        boolean isCurrentFy = fy.equals(currentFy);
+
+        List<String> validQuarters = isCurrentFy ? getQuartersUpToNow() : List.of("Q1", "Q2", "Q3", "Q4");
+
+        return agpService.findAll().stream()
+            .filter(agp -> fy.equals(agp.getObFY())) // Filter by FY
+            .filter(agp -> validQuarters.contains(agp.getObQT())) // Filter by valid quarters
+            .collect(Collectors.groupingBy(
+                Agp::getAccountName, // Group by Account Name
+                Collectors.summingInt(Agp::getAgpValue) // Sum agpValue
+            ));
+    }
+
+    // Utility method to get valid quarters for YTD
+    private List<String> getQuartersUpToNow() {
+        int month = LocalDate.now().getMonthValue();
+        if (month >= 4 && month <= 6) return List.of("Q1"); // Apr-Jun
+        if (month >= 7 && month <= 9) return List.of("Q1", "Q2"); // Apr-Sep
+        if (month >= 10 && month <= 12) return List.of("Q1", "Q2", "Q3"); // Apr-Dec
+        return List.of("Q1", "Q2", "Q3", "Q4"); // Jan-Mar (Full year)
+    }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Agp> getAgpById(@PathVariable Long id) {

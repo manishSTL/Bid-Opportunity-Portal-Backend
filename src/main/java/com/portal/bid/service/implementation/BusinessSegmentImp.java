@@ -1,12 +1,13 @@
 package com.portal.bid.service.implementation;
-import com.portal.bid.entity.BusinessSegment;
-import com.portal.bid.repository.BusinessSegmentRepository;
-import com.portal.bid.service.BusinessSegmentService;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.portal.bid.entity.BusinessSegment;
+import com.portal.bid.repository.BusinessSegmentRepository;
+import com.portal.bid.service.BusinessSegmentService;
 
 @Service
 public class BusinessSegmentImp implements BusinessSegmentService {
@@ -42,5 +43,11 @@ public class BusinessSegmentImp implements BusinessSegmentService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public BusinessSegment getbyid(Long id) {
+        Optional<BusinessSegment> businessSegment = businessSegmentRepository.findById(id);
+        return businessSegment.orElse(null);
     }
 }

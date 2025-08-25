@@ -1,8 +1,8 @@
 package com.portal.bid.service;
 
-import com.portal.bid.entity.BusinessSegment;
-
 import java.util.List;
+
+import com.portal.bid.entity.BusinessSegment;
 
 public interface BusinessSegmentService {
     BusinessSegment createBusinessSegment(BusinessSegment b);
@@ -12,4 +12,6 @@ public interface BusinessSegmentService {
     BusinessSegment updateBusinessSegment(Long id, BusinessSegment businessSegment);
 
     boolean deleteBusinessSegment(Long id);
+
+    BusinessSegment getbyid(Long id);
 }

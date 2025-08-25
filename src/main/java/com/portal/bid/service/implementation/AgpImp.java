@@ -1,13 +1,14 @@
 package com.portal.bid.service.implementation;
 
-import com.portal.bid.entity.Agp;
-import com.portal.bid.repository.AgpRepository;
-import com.portal.bid.service.AgpService;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.portal.bid.entity.Agp;
+import com.portal.bid.repository.AgpRepository;
+import com.portal.bid.service.AgpService;
 
 
 @Service
@@ -30,5 +31,23 @@ public class AgpImp implements AgpService {
     @Override
     public void deleteById(Long id) {
         agpRepository.deleteById(id);
+    }
+
+    @Override
+    public Agp updateAgp(Agp agp) {
+        // Ensure the Agp exists
+        if (agp.getId() == null) {
+            throw new IllegalArgumentException("Cannot update Agp without an ID");
+        }
+        
+        // You might want to add additional validation here
+        // For example, checking if the record exists before updating
+        Optional<Agp> existingAgp = agpRepository.findById(agp.getId());
+        if (existingAgp.isEmpty()) {
+            throw new IllegalArgumentException("Cannot find Agp with ID: " + agp.getId());
+        }
+
+        // Perform the update
+        return agpRepository.save(agp);
     }
 }

@@ -2,17 +2,13 @@ package com.portal.bid.controller;
 
 import java.security.Principal;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.portal.bid.entity.*;
-import com.portal.bid.repository.RolesPermissionRepo;
-import com.portal.bid.repository.UserRoleRepo;
-import com.portal.bid.service.*;
-import com.portal.bid.util.JWTUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -21,13 +17,30 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.portal.bid.entity.User;
+import com.portal.bid.entity.UserRequest;
+import com.portal.bid.entity.UserResponse;
+import com.portal.bid.service.PermissionsService;
+import com.portal.bid.service.RolesPermissionService;
+import com.portal.bid.service.TokenService;
+import com.portal.bid.service.UserRolesService;
+import com.portal.bid.service.UserService;
+import com.portal.bid.util.JWTUtil;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/api/user")
@@ -197,6 +210,97 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new UserResponse(null, null, "Error during authentication"));
         }
+    }
+
+    @PostMapping("/sso/login")
+    public ResponseEntity<UserResponse> ssoLogin(@AuthenticationPrincipal Saml2AuthenticatedPrincipal principal) {
+        try {
+            // Extract email (or unique identifier) from SSO principal
+            String email = null;
+            if (principal.getAttributes().get("email") != null) {
+                // Attempt to extract email with type checking and casting
+                Object emailAttribute = principal.getAttributes().get("email");
+                
+                if (emailAttribute instanceof List) {
+                    // If it's a list, take the first element
+                    List<Object> emailList = (List<Object>) emailAttribute;
+                    if (!emailList.isEmpty()) {
+                        email = String.valueOf(emailList.get(0));
+                    }
+                } else if (emailAttribute instanceof String) {
+                    // If it's already a string
+                    email = (String) emailAttribute;
+                } else if (emailAttribute != null) {
+                    // Convert to string for other possible types
+                    email = emailAttribute.toString();
+                }
+            }else if(principal.getAttributes().get("emailAddress") != null) {
+                // Attempt to extract email with type checking and casting
+                Object emailAttribute = principal.getAttributes().get("emailAddress");
+                
+                if (emailAttribute instanceof List) {
+                    // If it's a list, take the first element
+                    List<Object> emailList = (List<Object>) emailAttribute;
+                    if (!emailList.isEmpty()) {
+                        email = String.valueOf(emailList.get(0));
+                    }
+                } else if (emailAttribute instanceof String) {
+                    // If it's already a string
+                    email = (String) emailAttribute;
+                } else if (emailAttribute != null) {
+                    // Convert to string for other possible types
+                    email = emailAttribute.toString();
+                }
+            }
+    
+            // Option D: Fallback to getName() if no attribute found
+            if (email == null) {
+                email = principal.getName();
+            }
+
+            // Verify user exists in the database
+            User storedUser = userService.findUserByEmail(email);
+            if (storedUser == null || "INACTIVE".equals(storedUser.getStatus().name())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new UserResponse(null, null, "User not authorized to log in"));
+            }
+
+            // Fetch user's permissions
+            List<Integer> roles = userRolesService.getAllofid(storedUser.getId());
+            Set<Integer> allPermissionIds = new HashSet<>();
+            for (Integer roleId : roles) {
+                allPermissionIds.addAll(rolesPermissionService.getPermissions(roleId));
+            }
+
+            List<String> permissionNames = new ArrayList<>();
+            for (Integer permissionId : allPermissionIds) {
+                permissionNames.add(permissionsService.allPermission(permissionId));
+            }
+
+            // Generate tokens
+            String accessToken = util.generateToken(email, permissionNames, storedUser.getId());
+            String refreshToken = util.generateRefreshToken(email, storedUser.getId());
+
+            // Create response
+            UserResponse response = new UserResponse(accessToken, refreshToken, "SSO login successful");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // Handle errors and log for debugging
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new UserResponse(null, null, "Error during SSO login: " + e.getMessage()));
+        }
+    }
+
+     @GetMapping("/sso-error")
+    public ResponseEntity<?> handleLoginError(@RequestParam(value = "error", required = false) boolean error) {
+        if (error) {
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "SAML Authentication Failed"));
+        }
+        return ResponseEntity.badRequest().build();
     }
 
 
